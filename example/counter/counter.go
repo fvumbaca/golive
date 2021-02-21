@@ -1,47 +1,37 @@
 package main
 
 import (
-	"io"
+	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"text/template"
 
 	"github.com/fvumabca/golive"
 )
 
 func main() {
-	ep := golive.NewEndpoint()
+	h := golive.NewHub()
+	http.Handle("/live", h)
 
-	http.Handle("/", ep.ViewHandler(NewCounter))
-	http.Handle("/live", ep.LiveHandler(NewCounter))
+	p := golive.NewPage(controller, view)
+	h.RegisterPage("/", p)
+	http.Handle("/", p)
 
 	log.Println("listening on :3000")
 	log.Fatalln(http.ListenAndServe(":3000", nil))
 }
 
-func NewCounter() golive.LiveView {
-	return &Counter{}
-}
-
-type Counter struct {
-	Count int
-}
-
-func (c *Counter) Update(event golive.Event) {
-	switch event.Action() {
-	case "inc":
-		c.Count++
-	case "clear":
-		c.Count = 0
+func controller(ctx context.Context, e golive.Event, state interface{}) interface{} {
+	if v, ok := state.(int); ok {
+		return v + 1
 	}
+	return 1
 }
 
-var counterTpl, _ = template.New("").Parse(`
-<h1>My Count {{.Count}}</h1>
-<button golive-onclick="inc">Increment</button>
-<button golive-onclick="clear">Clear</button>
-`)
+func view(ctx context.Context, info interface{}) []byte {
+	if v, ok := info.(int); ok {
+		return []byte(fmt.Sprintf(`<div id="main"><h1>Count: %d</h1><button golive-onclick="one">Hello</button></div>`, v))
+	}
 
-func (c *Counter) Render(out io.Writer) error {
-	return counterTpl.Execute(out, c)
+	return []byte(`<button golive-onclick="inc">Start counting</button>`)
 }
