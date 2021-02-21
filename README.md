@@ -6,44 +6,41 @@ A Phoenix Live View inspired library for Go!
 
 ## Example
 
-Write a simple counter with:
+Here is a simple counting application as seen in [`examples/counter`](examples/counter):
 
 ```go
 func main() {
-	ep := golive.NewEndpoint()
+	h := golive.NewHub()
+	http.Handle("/live", h)
 
-	http.Handle("/", ep.ViewHandler(NewCounter))
-	http.Handle("/live", ep.LiveHandler(NewCounter))
+	p := golive.NewPage(controller, view)
+	h.RegisterPage("/", p)
+	http.Handle("/", p)
 
 	log.Println("listening on :3000")
 	log.Fatalln(http.ListenAndServe(":3000", nil))
 }
 
-func NewCounter() golive.LiveView {
-	return &Counter{}
-}
-
-type Counter struct {
-	Count int
-}
-
-func (c *Counter) Update(event golive.Event) {
-	switch event.Action() {
-	case "inc":
-		c.Count++
-	case "clear":
-		c.Count = 0
+func controller(ctx context.Context, e golive.Event, state interface{}) interface{} {
+	if v, ok := state.(int); ok {
+		switch e.Action {
+		case "inc":
+			return v + 1
+		case "clear":
+			return 0
+		}
 	}
+	return 1
 }
 
-var counterTpl, _ = template.New("").Parse(`
-<h1>My Count {{.Count}}</h1>
-<button golive-onclick="inc">Increment</button>
-<button golive-onclick="clear">Clear</button>
-`)
+func view(ctx context.Context, info interface{}) []byte {
+	if v, ok := info.(int); ok {
+		return []byte(fmt.Sprintf(`<h1>Count: %d</h1>
+		<button golive-onclick="inc">Increment</button>
+		<button golive-onclick="clear">Clear</button>`, v))
+	}
 
-func (c *Counter) Render(out io.Writer) error {
-	return counterTpl.Execute(out, c)
+	return []byte(`<button golive-onclick="inc">Start Counting</button>`)
 }
 ```
 
@@ -51,6 +48,3 @@ func (c *Counter) Render(out io.Writer) error {
 
 - [ ] Implement HTML diff instead of sending whole document every time
 - [ ] Open event channel to let other goroutines access to send events to sessions
-- [ ] Session affinity
-- [ ] Session expiry
-- [ ] Graceful shutdown

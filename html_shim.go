@@ -126,20 +126,13 @@ window.onload = function () {
             var changes = JSON.parse(evt.data)
 			changes.forEach(function(i) {
 				var {id, html} = i
-				console.log(i)
+				// console.log(i)
 				if (id == undefined) {
 					document.body.innerHTML = html
 				} else {
 					document.getElementById(id).innerHTML = html
 				}
 			})
-            // var {id, html} = JSON.parse(evt.data)
-
-            // if (id == undefined) {
-            //     document.body.innerHTML = html
-            // } else {
-            //     document.getElementById(id).innerHTML = html
-            // }
         }
     } else {
         console.log("This browser does not support websockets")

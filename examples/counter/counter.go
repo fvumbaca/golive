@@ -23,15 +23,22 @@ func main() {
 
 func controller(ctx context.Context, e golive.Event, state interface{}) interface{} {
 	if v, ok := state.(int); ok {
-		return v + 1
+		switch e.Action {
+		case "inc":
+			return v + 1
+		case "clear":
+			return 0
+		}
 	}
 	return 1
 }
 
 func view(ctx context.Context, info interface{}) []byte {
 	if v, ok := info.(int); ok {
-		return []byte(fmt.Sprintf(`<div id="main"><h1>Count: %d</h1><button golive-onclick="one">Hello</button></div>`, v))
+		return []byte(fmt.Sprintf(`<h1>Count: %d</h1>
+		<button golive-onclick="inc">Increment</button>
+		<button golive-onclick="clear">Clear</button>`, v))
 	}
 
-	return []byte(`<button golive-onclick="inc">Start counting</button>`)
+	return []byte(`<button golive-onclick="inc">Start Counting</button>`)
 }
