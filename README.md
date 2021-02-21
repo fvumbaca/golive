@@ -2,7 +2,7 @@
 
 A Phoenix Live View inspired library for Go!
 
-**Currently under development. This is just a POC**
+**Currently under development. API might change at any time.**
 
 ## Example
 
