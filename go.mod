@@ -1,4 +1,4 @@
-module github.com/fvumabca/golive
+module github.com/fvumbaca/golive
 
 go 1.13
 
